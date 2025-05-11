@@ -48,7 +48,7 @@ void createTableDailyRevenue(){
 										"FOREIGN KEY (id_team) REFERENCES teams(id));");
 
 	if(!queryCreateTableDailyRevenue.exec()){
-		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela daily_production:\n" + queryCreateTableDailyProduction.lastError().text());
+		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela daily_production:\n" + queryCreateTableDailyRevenue.lastError().text());
 		return;
 	}
 }
