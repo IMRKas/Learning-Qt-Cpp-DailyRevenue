@@ -9,6 +9,7 @@
 
 TeamWindow::TeamWindow(QWidget* parent) : QWidget(parent){
 	setWindowTitle("EQUIPES"); // TEAMS
+	setAttribute(Qt::WA_DeleteOnClose);
 
 	addNewTeam = new QPushButton("Adicionar nova Equipe", this); 
 	deleteTeam = new QPushButton("Excluir Equipe", this);

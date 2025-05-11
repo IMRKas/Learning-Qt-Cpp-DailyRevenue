@@ -5,9 +5,6 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include "WindowMain.h"
-#include "TeamWindow.h"
-#include "NewTeamForm.h"
-#include "FleetWindow.h"
 
 void createTableDailyRevenue();
 void createTableTeams();
@@ -28,10 +25,9 @@ int main(int argc, char *argv[]){
 	createTableTeams();
 	createTableFleet();
 
-	TeamWindow* newTeam = new TeamWindow();
-	FleetWindow* newFleet = new FleetWindow();
-	newTeam->show();
-	newFleet->show();
+	WindowMain windowMain;
+	windowMain.show();
+
 
 	return app.exec();
 }

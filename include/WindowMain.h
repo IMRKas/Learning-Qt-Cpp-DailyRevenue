@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QComboBox>
+#include "TeamWindow.h"
+#include "FleetWindow.h"
 
 
 class WindowMain : public QWidget {
@@ -22,8 +24,11 @@ class WindowMain : public QWidget {
 	private:
 		QPushButton* getFleet{nullptr};
 		QPushButton* getTeams{nullptr};
-		QPushButton* addProductivity{nullptr};
+		QPushButton* dailyRevenue{nullptr};
 		QPushButton* exportDataToCSV{nullptr};
 		QComboBox* filterByEquipe{nullptr};
+
+		TeamWindow* openTeamTable{nullptr};
+		FleetWindow* openFleetTable{nullptr};
 };
 #endif
