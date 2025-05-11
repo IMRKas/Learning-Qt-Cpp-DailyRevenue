@@ -8,39 +8,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QFormLayout>
-
-// --------------- Combo Box --------------- //
-// ComboBox items
-namespace FleetStatus {
-	const QString Broken = "Quebrado";
-	const QString Running = "Rodando";
-	const QString InWorkshop = "Oficina";
-	const QString Backup = "Reserva";
-};
-
-namespace FleetType {
-	const QString Truck = "Caminhão";
-	const QString PickupTruck = "Caminhonete";
-	const QString Motorcycle = "Moto";
-	const QString LightVehicle = "Veículo Leve";
-};
-
-// Data added to DB
-namespace DbStatus {
-	const QString running = "RODANDO";
-	const QString broken = "QUEBRADO";
-	const QString inWorkshop = "OFICINA";
-	const QString backup = "RESERVA";
-};
-
-namespace DbFleet {
-	const QString truck = "CAMINHÃO";
-	const QString pickupTruck = "CAMINHONETE";
-	const QString motorcycle = "MOTO";
-	const QString lightVehicle = "VEÍCULO LEVE";
-};
-
-// ---------------- END -----------------------//
+#include "Namespaces.h"
 
 
 class NewFleetForm : public QWidget {

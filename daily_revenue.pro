@@ -13,6 +13,7 @@ SOURCES +=	\
 		src/fleetWindow.cpp
 
 HEADERS +=	\ 
+		include/Namespaces.h \
 		include/ProductivityForm.h \
 		include/WindowMain.h \
 		include/TeamWindow.h \

@@ -6,6 +6,7 @@
 #include <QSqlError>
 #include "WindowMain.h"
 #include "TeamWindow.h"
+#include "NewTeamForm.h"
 #include "FleetWindow.h"
 
 void createTableDailyRevenue();
@@ -23,11 +24,13 @@ int main(int argc, char *argv[]){
 		QMessageBox::critical(nullptr,"ERROR","FALHA AO ABRIR BANCO DE DADOS" + db.lastError().text());
 		return -1;
 	}
-	createTableDailyProduction();
+	createTableDailyRevenue();
 	createTableTeams();
 	createTableFleet();
 
+	TeamWindow* newTeam = new TeamWindow();
 	FleetWindow* newFleet = new FleetWindow();
+	newTeam->show();
 	newFleet->show();
 
 	return app.exec();
@@ -48,7 +51,7 @@ void createTableDailyRevenue(){
 										"FOREIGN KEY (id_team) REFERENCES teams(id));");
 
 	if(!queryCreateTableDailyRevenue.exec()){
-		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela daily_production:\n" + queryCreateTableDailyProduction.lastError().text());
+		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela daily_production:\n" + queryCreateTableDailyRevenue.lastError().text());
 		return;
 	}
 }
@@ -57,11 +60,12 @@ void createTableTeams(){
 	QSqlQuery queryCreateTableTeams;
 	queryCreateTableTeams.prepare("CREATE TABLE IF NOT EXISTS teams("
 							   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-							   "name TEXT NOT NULL,"
-							   "commissioner TEXT NOT NULL,"
-							   "contact_number TEXT,"
+							   "team_name TEXT NOT NULL,"
+							   "team_status TEXT NOT NULL,"
+							   "team_commissioner TEXT,"
 							   "id_fleet INTEGER UNIQUE,"
-							   "FOREIGN KEY (id_fleet) REFERENCES fleet(id));");
+							   "team_contact_number INTEGER,"
+							   "FOREIGN KEY (id_fleet) REFERENCES fleet(id) ON DELETE SET NULL);");
 	if(!queryCreateTableTeams.exec()){
 		QMessageBox::critical(nullptr,"ERRO","Falha ao criar tabela teams:\n" + queryCreateTableTeams.lastError().text());
 		return;
@@ -76,6 +80,7 @@ void createTableFleet(){
 							 "fleet_type TEXT NOT NULL,"
 							 "license_plate TEXT NOT NULL,"
 							 "fleet_status TEXT NOT NULL,"
+							 "team_using TEXT,"
 							 "status_observation TEXT);");
 	if(!queryCreateFleet.exec()){
 		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela 'fleet':\n" + queryCreateFleet.lastError().text());

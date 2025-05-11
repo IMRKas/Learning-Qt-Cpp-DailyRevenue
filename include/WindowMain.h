@@ -20,6 +20,8 @@ class WindowMain : public QWidget {
 
 
 	private:
+		QPushButton* getFleet{nullptr};
+		QPushButton* getTeams{nullptr};
 		QPushButton* addProductivity{nullptr};
 		QPushButton* exportDataToCSV{nullptr};
 		QComboBox* filterByEquipe{nullptr};

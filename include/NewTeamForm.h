@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QComboBox>
+#include "Namespaces.h"
 
 class NewTeamForm : public QWidget {
 	Q_OBJECT
@@ -18,5 +20,7 @@ class NewTeamForm : public QWidget {
 		QLineEdit* teamName{nullptr};
 		QLineEdit* teamCommissioner{nullptr};
 		QLineEdit* teamContactNumber{nullptr};
+		QComboBox* teamFleetNumber{nullptr};
+		QComboBox* teamStatus{nullptr};
 };
 #endif
