@@ -4,6 +4,7 @@
 #include <QSqlQuery>
 #include <QModelIndex>
 #include <QSqlError>
+#include <QHeaderView>
 #include <QMessageBox>
 
 TeamWindow::TeamWindow(QWidget* parent) : QWidget(parent){
@@ -41,8 +42,8 @@ TeamWindow::TeamWindow(QWidget* parent) : QWidget(parent){
 			if(!newTeam){
 				QModelIndex teamIndex = teamsView->currentIndex();
 				if(!teamIndex.isValid()){
-					QMessageBox::information(this, "ERRO", "Selecione uma equipe para atualizar");
-					this->close();	
+						QMessageBox::information(this, "ERRO", "Selecione uma equipe para atualizar");
+						return;
 					}
 				int teamID = model->data(model->index(teamIndex.row(),0)).toInt();
 				newTeam = new NewTeamForm(teamID);
@@ -57,15 +58,19 @@ TeamWindow::TeamWindow(QWidget* parent) : QWidget(parent){
 
 	connect(deleteTeam, &QPushButton::clicked, this, &TeamWindow::deleteTeamFromDb);
 	showTeams();
+	teamsView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
 }
 
 void TeamWindow::showTeams(){
-	model->setQuery("SELECT id, name, commissioner, contact_number, fleet_number FROM teams;");
+	model->setQuery("SELECT teams.id, teams.team_name, fleet.fleet_number, teams.team_status, teams.team_commissioner,"
+			"teams.team_contact_number FROM teams LEFT JOIN fleet ON teams.id_fleet = fleet.id;");
 	model->setHeaderData(0,Qt::Horizontal,"ID");
 	model->setHeaderData(1,Qt::Horizontal,"EQUIPE");
-	model->setHeaderDate(2,Qt::Horizontal,"FROTA");
-	model->setHeaderData(3,Qt::Horizontal,"ENCARREGADO");
-	model->setHeaderData(4,Qt::Horizontal,"CONTATO");
+	model->setHeaderData(2,Qt::Horizontal,"FROTA");
+	model->setHeaderData(3,Qt::Horizontal,"STATUS");
+	model->setHeaderData(4,Qt::Horizontal,"ENCARREGADO");
+	model->setHeaderData(5,Qt::Horizontal,"CONTATO");
 
 	teamsView->resizeColumnsToContents();
 }
@@ -77,18 +82,20 @@ void TeamWindow::deleteTeamFromDb(){
 		return;
 	}
 
-	int teamName = model->data(model->index(index.row(),0)).toInt();
+	if(QMessageBox::question(this,"EXCLUIR EQUIPE", "TEM CERTEZA QUE DESEJA EXCLUIR ESTA EQUIPE ?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes){
+		int teamName = model->data(model->index(index.row(),0)).toInt();
 
-	QSqlQuery queryDeleteTeam;
-	queryDeleteTeam.prepare("DELETE FROM teams WHERE id = ?");
-	queryDeleteTeam.addBindValue(teamName);
+		QSqlQuery queryDeleteTeam;
+		queryDeleteTeam.prepare("DELETE FROM teams WHERE id = ?");
+		queryDeleteTeam.addBindValue(teamName);
 
-	if(!queryDeleteTeam.exec()){
-		QMessageBox::critical(this, "ERRO","Não foi possivel excluir equipe:\n" + queryDeleteTeam.lastError().text());
-		return;
-	} else {
-		QMessageBox::information(this, "SUCESSO","Equipe Excluida com Sucesso");
-		showTeams();
-		return;
+		if(!queryDeleteTeam.exec()){
+			QMessageBox::critical(this, "ERRO","Não foi possivel excluir equipe:\n" + queryDeleteTeam.lastError().text());
+			return;
+		} else {
+			QMessageBox::information(this, "SUCESSO","Equipe Excluida com Sucesso");
+			showTeams();
+			return;
+		}
 	}
 }
