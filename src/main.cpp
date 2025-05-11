@@ -8,7 +8,7 @@
 #include "TeamWindow.h"
 #include "FleetWindow.h"
 
-void createTableDailyProduction();
+void createTableDailyRevenue();
 void createTableTeams();
 void createTableFleet();
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
 	
 	QDir().mkpath("database");
 	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-	db.setDatabaseName("database/daily_production_db.db");
+	db.setDatabaseName("database/daily_revenue_db.db");
 	if(!db.open()){
 		QMessageBox::critical(nullptr,"ERROR","FALHA AO ABRIR BANCO DE DADOS" + db.lastError().text());
 		return -1;
@@ -34,20 +34,20 @@ int main(int argc, char *argv[]){
 }
 
 
-void createTableDailyProduction(){
-	QSqlQuery queryCreateTableDailyProduction;
-	queryCreateTableDailyProduction.prepare("CREATE TABLE IF NOT EXISTS daily_production("
+void createTableDailyRevenue(){
+	QSqlQuery queryCreateTableDailyRevenue;
+	queryCreateTableDailyRevenue.prepare("CREATE TABLE IF NOT EXISTS daily_revenue("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"date TEXT NOT NULL,"
 										"id_team INTEGER NOT NULL,"
-										"sales_project INTEGER NOT NULL,"
-										"total_produced INTEGER NOT NULL,"
+										"project_number INTEGER NOT NULL,"
+										"total_daily_revenue INTEGER NOT NULL,"
 										"goal_achieved TEXT NOT NULL,"
 										"goal_unachieved_why TEXT,"
 										"goal_unachieved_description TEXT,"
 										"FOREIGN KEY (id_team) REFERENCES teams(id));");
 
-	if(!queryCreateTableDailyProduction.exec()){
+	if(!queryCreateTableDailyRevenue.exec()){
 		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela daily_production:\n" + queryCreateTableDailyProduction.lastError().text());
 		return;
 	}

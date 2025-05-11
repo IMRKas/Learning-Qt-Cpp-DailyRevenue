@@ -60,11 +60,12 @@ TeamWindow::TeamWindow(QWidget* parent) : QWidget(parent){
 }
 
 void TeamWindow::showTeams(){
-	model->setQuery("SELECT id, name, commissioner, contact_number FROM teams;");
+	model->setQuery("SELECT id, name, commissioner, contact_number, fleet_number FROM teams;");
 	model->setHeaderData(0,Qt::Horizontal,"ID");
 	model->setHeaderData(1,Qt::Horizontal,"EQUIPE");
-	model->setHeaderData(2,Qt::Horizontal,"ENCARREGADO");
-	model->setHeaderData(3,Qt::Horizontal,"CONTATO");
+	model->setHeaderDate(2,Qt::Horizontal,"FROTA");
+	model->setHeaderData(3,Qt::Horizontal,"ENCARREGADO");
+	model->setHeaderData(4,Qt::Horizontal,"CONTATO");
 
 	teamsView->resizeColumnsToContents();
 }

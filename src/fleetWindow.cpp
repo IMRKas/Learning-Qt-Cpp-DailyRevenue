@@ -194,7 +194,6 @@ void FleetWindow::filterFleetByStatusAndType(){
 	} else {
 		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_status = UPPER(?) AND fleet_type = UPPER(?);");
 		statusQuery.addBindValue(filterByStatus->currentText());
-		qDebug() << filterByType->currentText().toUpper();
 		statusQuery.addBindValue(filterByType->currentData());
 	}
 

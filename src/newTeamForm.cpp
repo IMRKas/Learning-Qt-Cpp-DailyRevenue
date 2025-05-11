@@ -30,9 +30,11 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 	teamName = new QLineEdit(this);
 	teamCommissioner = new QLineEdit(this);
 	teamContactNumber = new QLineEdit(this);
+	teamFleetNumber = new QComboBox(this);
 
 	teamFormLayout->addRow("Nome",teamName);
 	teamFormLayout->addRow("Encarregado",teamCommissioner);
+	teamFormLayout->addRow("Frota", teamFleetNumber);
 	teamFormLayout->addRow("Contato",teamContactNumber);
 
 	// Connects
@@ -42,9 +44,10 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 				QMessageBox::critical(this,"ERRO","Insira um nome valido para equipe"); // Invalid name error
 			} else {
 				QSqlQuery insertNewTeam;
-				insertNewTeam.prepare("INSERT INTO teams(name, commissioner, contact_number) VALUES (UPPER(?), UPPER(?), ?);");
+				insertNewTeam.prepare("INSERT INTO teams(name, commissioner,fleet_number, contact_number) VALUES (UPPER(?), UPPER(?), ?);");
 				insertNewTeam.addBindValue(teamName->text());
 				insertNewTeam.addBindValue((teamCommissioner->text().isEmpty()) ? QVariant(QVariant::String) : QVariant(teamCommissioner->text()));
+				insertNewTeam.addBindValue((teamFleetNumber->currentText().isNull()) ? QVariant(QVariant::String) : QVariant(teamFleetNumber->currentText()));
 				insertNewTeam.addBindValue((teamContactNumber->text().isEmpty()) ? QVariant(QVariant::String) : QVariant(teamContactNumber->text()));
 
 				if(!insertNewTeam.exec()){
