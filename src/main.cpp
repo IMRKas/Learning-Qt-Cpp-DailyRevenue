@@ -45,6 +45,7 @@ void createTableDailyRevenue(){
 										"total_daily_revenue INTEGER NOT NULL,"
 										"goal_achieved TEXT NOT NULL,"
 										"goal_unachieved_why TEXT,"
+										"revenue_diff INTEGER,"
 										"responsible_sector TEXT,"
 										"FOREIGN KEY (id_team) REFERENCES teams(id));");
 

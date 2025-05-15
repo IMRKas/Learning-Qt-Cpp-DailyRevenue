@@ -4,12 +4,14 @@
 #include <QPushButton>
 #include <QTableView>
 #include <QSqlQueryModel>
+#include <QDateEdit>
 #include <QComboBox>
 
 class DailyRevenue : public QWidget{
 	Q_OBJECT
 	public:
 		DailyRevenue(QWidget* parent = nullptr);
+		void showDailyRevenue();
 
 
 	private:
@@ -17,9 +19,13 @@ class DailyRevenue : public QWidget{
 		QPushButton* updateDailyRevenue{nullptr};
 		QPushButton* deleteDailyRevenue{nullptr};
 		QComboBox* filterByTeam{nullptr};
+		QComboBox* filterByReason{nullptr};
 
-		QTableView* showDailyRevenue{nullptr};
-		QSqlQueryModel* dailyRevenueModel{nullptr};
+		QDateEdit* filterByDate{nullptr};
+
+		QTableView* dailyTable{nullptr};
+		QSqlQueryModel* dailyModel{nullptr};
+		
 
 };
 #endif
