@@ -5,6 +5,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include "WindowMain.h"
+#include "DailyRevenueForm.h"
 
 void createTableDailyRevenue();
 void createTableTeams();
@@ -25,9 +26,10 @@ int main(int argc, char *argv[]){
 	createTableTeams();
 	createTableFleet();
 
-	WindowMain windowMain;
-	windowMain.show();
-
+	//WindowMain windowMain;
+	//windowMain.show();
+	DailyRevenueForm* drForm = new DailyRevenueForm();
+	drForm->show();
 
 	return app.exec();
 }
@@ -43,7 +45,7 @@ void createTableDailyRevenue(){
 										"total_daily_revenue INTEGER NOT NULL,"
 										"goal_achieved TEXT NOT NULL,"
 										"goal_unachieved_why TEXT,"
-										"goal_unachieved_description TEXT,"
+										"responsible_sector TEXT,"
 										"FOREIGN KEY (id_team) REFERENCES teams(id));");
 
 	if(!queryCreateTableDailyRevenue.exec()){
@@ -83,3 +85,4 @@ void createTableFleet(){
 		return;
 	}
 }
+
