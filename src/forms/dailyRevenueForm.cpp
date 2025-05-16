@@ -114,12 +114,21 @@ DailyRevenueForm::DailyRevenueForm(QWidget* parent) : QWidget(parent){
 	// Connects Settings
 	connect(cancelButton, &QPushButton::clicked, this, &QWidget::close);
 	connect(saveButton, &QPushButton::clicked, this, [=](){
-			
+			bool okPN, okDR;
+			projectNumber->toInt(&okPN);
+			dailyRevenue->replace(QString(","),QString("."));
+			dailyRevenue->toInt(&okDN);
+			if(okPN && okDR){
+				if(goalAchieved->text() == Goal::Failed && (notAchievedReason->currentData().isNull() || sectorResponsible->currentData().isNull()) {
+						QMessageBox::warning(this, "ATENÇÃO", "Se a Meta do Dia não foi alcançada, deve haver um motivo");
+						} else{
 			QSqlQuery saveRevenue;
 			saveRevenue.prepare("INSERT INTO daily_revenue (project_number, date, id_team, total_daily_revenue, revenue_diff,"
 								"goal_achieved, responsible_sector, goal_unachieved_why) VALUES (?,?,?,?,?,?,?,?);");
 
 
+			} else {
+				QMessageBox::critical(this, "ATENÇÃO", "Insira valor valido para numero de projeto e valor de produção");
 			});
 
 
