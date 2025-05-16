@@ -7,10 +7,10 @@
 #include <QDateEdit>
 #include <QComboBox>
 
-class DailyRevenue : public QWidget{
+class DailyRevenueWindow : public QWidget{
 	Q_OBJECT
 	public:
-		DailyRevenue(QWidget* parent = nullptr);
+		DailyRevenueWindow(QWidget* parent = nullptr);
 		void showDailyRevenue();
 
 

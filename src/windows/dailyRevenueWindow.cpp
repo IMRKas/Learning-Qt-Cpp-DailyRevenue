@@ -2,8 +2,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-
-DailyRevenueWindow::DailyRevenueWindoow(QWidget* parent) QWidget(parent){
+DailyRevenueWindow::DailyRevenueWindow(QWidget* parent) : QWidget(parent){
 	setWindowTitle("PRODUÇÃO DIÁRIA");
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -27,6 +26,5 @@ DailyRevenueWindow::DailyRevenueWindoow(QWidget* parent) QWidget(parent){
 void DailyRevenueWindow::showDailyRevenue(){
 	dailyModel->setQuery("SELECT...");
 	dailyModel->setHeaderData(0,Qt::Horizontal,"Data");
-	dailyModel->setHeaderData(
 
 }

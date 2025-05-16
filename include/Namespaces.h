@@ -54,6 +54,7 @@ namespace ShortfallReasons{
 	const QString LowRevenueJob = "Obra de baixa Produtividade";
 	const QString DifficultiesDueToComplexity = "Dificuldades devido a complexidade da Obra";
 	const QString MechanicalIssue = "Problemas Mecânicos";
+	const QString TeamBreak = "Folga dada a Equipe";
 };
 
 namespace Sector {
@@ -62,6 +63,7 @@ namespace Sector {
 	const QString Sesmt = "SESMT";
 	const QString Fleet = "FROTA";
 	const QString Client = "EDP";
+	const QString Team = "EQUIPE";
 	const QString None = "N/A";
 };
 

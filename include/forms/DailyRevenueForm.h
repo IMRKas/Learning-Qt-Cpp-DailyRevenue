@@ -32,15 +32,18 @@ class DailyRevenueForm : public QWidget{
 		QLineEdit* projectNumber{nullptr};
 		QLineEdit* dailyRevenue{nullptr};
 		QLineEdit* goalAchieved{nullptr};
+		QLineEdit* diffRevenue{nullptr};
 		QComboBox* sectorResponsible{nullptr};
 		QComboBox* notAchievedReason{nullptr};
 
 		QLabel* dateLabel{nullptr};
 		QLabel* teamLabel{nullptr};
+		QLabel* projectLabel{nullptr};
 		QLabel* revenueLabel{nullptr};
 		QLabel* goalLabel{nullptr};
 		QLabel* sectorLabel{nullptr};
 		QLabel* reasonLabel{nullptr};
+		QLabel* diffLabel{nullptr};
 
 		QHBoxLayout* dateTeamRow{nullptr};
 		QHBoxLayout* projectRevenueRow{nullptr};

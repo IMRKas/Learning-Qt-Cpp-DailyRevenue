@@ -39,14 +39,14 @@ void createTableDailyRevenue(){
 	QSqlQuery queryCreateTableDailyRevenue;
 	queryCreateTableDailyRevenue.prepare("CREATE TABLE IF NOT EXISTS daily_revenue("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
-										"date TEXT NOT NULL,"
-										"id_team INTEGER NOT NULL,"
 										"project_number INTEGER NOT NULL,"
+										"date DATE NOT NULL,"
+										"id_team INTEGER NOT NULL,"
 										"total_daily_revenue INTEGER NOT NULL,"
-										"goal_achieved TEXT NOT NULL,"
-										"goal_unachieved_why TEXT,"
 										"revenue_diff INTEGER,"
+										"goal_achieved TEXT NOT NULL,"
 										"responsible_sector TEXT,"
+										"goal_unachieved_why TEXT,"
 										"FOREIGN KEY (id_team) REFERENCES teams(id));");
 
 	if(!queryCreateTableDailyRevenue.exec()){
