@@ -40,7 +40,7 @@ void createTableDailyRevenue(){
 	queryCreateTableDailyRevenue.prepare("CREATE TABLE IF NOT EXISTS daily_revenue("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"project_number INTEGER NOT NULL,"
-										"date DATE NOT NULL,"
+										"date TEXT NOT NULL,"
 										"id_team INTEGER NOT NULL,"
 										"total_daily_revenue INTEGER NOT NULL,"
 										"revenue_diff INTEGER,"
@@ -62,6 +62,7 @@ void createTableTeams(){
 							   "team_name TEXT NOT NULL,"
 							   "team_status TEXT NOT NULL,"
 							   "team_commissioner TEXT,"
+							   "team_daily_revenue_goal INTEGER NOT NULL,"
 							   "id_fleet INTEGER UNIQUE,"
 							   "team_contact_number INTEGER,"
 							   "FOREIGN KEY (id_fleet) REFERENCES fleet(id) ON DELETE SET NULL);");

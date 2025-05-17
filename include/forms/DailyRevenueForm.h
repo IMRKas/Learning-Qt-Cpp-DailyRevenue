@@ -18,7 +18,8 @@ class DailyRevenueForm : public QWidget{
 		DailyRevenueForm(QWidget* parent = nullptr);
 		//DailyRevenueForm(int revenueID, QWidget* parent = nullptr);
 
-
+	    int getTeamDailyRevenueGoal(int team_id);
+		
 	private:
 		QFormLayout* dailyForm{nullptr};
 		QVBoxLayout* dailyLayout{nullptr};
