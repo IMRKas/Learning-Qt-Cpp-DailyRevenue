@@ -112,7 +112,8 @@ FleetWindow::FleetWindow(QWidget* parent) : QWidget(parent){
 }
 
 void FleetWindow::showFleet(){
-	fleetModel->setQuery("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet;");
+	fleetModel->setQuery("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet "
+			" ORDER BY fleet_number ASC;");
 	fleetModel->setHeaderData(0,Qt::Horizontal,"ID");
 	fleetModel->setHeaderData(1,Qt::Horizontal,"FROTA");
 	fleetModel->setHeaderData(2,Qt::Horizontal,"TIPO");
@@ -186,13 +187,13 @@ void FleetWindow::filterFleetByStatusAndType(){
 	}
 	QSqlQuery statusQuery;
 	if(filterByStatus->currentText() != "Todos" && filterByType->currentText() == "Todos"){
-		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_status = UPPER(?);");
+		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_status = UPPER(?) ORDER BY fleet_number ASC;");
 		statusQuery.addBindValue(filterByStatus->currentText());
 	} else if(filterByStatus->currentText() == "Todos" && filterByType->currentText() != "Todos"){
-		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_type = UPPER(?);");
+		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_type = UPPER(?) ORDER BY fleet_number ASC;");
 		statusQuery.addBindValue(filterByType->currentData());
 	} else {
-		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_status = UPPER(?) AND fleet_type = UPPER(?);");
+		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_status = UPPER(?) AND fleet_type = UPPER(?) ORDER BY fleet_number ASC");
 		statusQuery.addBindValue(filterByStatus->currentText());
 		statusQuery.addBindValue(filterByType->currentData());
 	}

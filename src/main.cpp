@@ -5,7 +5,6 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include "WindowMain.h"
-#include "DailyRevenueForm.h"
 
 void createTableDailyRevenue();
 void createTableTeams();
@@ -28,9 +27,6 @@ int main(int argc, char *argv[]){
 
 	WindowMain windowMain;
 	windowMain.show();
-	DailyRevenueForm* drForm = new DailyRevenueForm();
-	drForm->show();
-
 	return app.exec();
 }
 
@@ -80,7 +76,6 @@ void createTableFleet(){
 							 "fleet_type TEXT NOT NULL,"
 							 "license_plate TEXT NOT NULL,"
 							 "fleet_status TEXT NOT NULL,"
-							 "team_using TEXT,"
 							 "status_observation TEXT);");
 	if(!queryCreateFleet.exec()){
 		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela 'fleet':\n" + queryCreateFleet.lastError().text());

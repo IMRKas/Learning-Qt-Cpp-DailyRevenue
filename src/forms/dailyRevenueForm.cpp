@@ -92,7 +92,7 @@ DailyRevenueForm::DailyRevenueForm(QWidget* parent) : QWidget(parent){
 	sectorResponsible->addItem(Sector::None, Sector::None);
 	// Team ComboBox
 	QSqlQuery getTeams;
-	getTeams.prepare("SELECT id, team_name FROM teams;");
+	getTeams.prepare("SELECT id, team_name FROM teams ORDER BY team_name;");
 	if(getTeams.exec()){
 		while(getTeams.next()){
 			int id = getTeams.value(0).toInt();
@@ -144,8 +144,39 @@ DailyRevenueForm::DailyRevenueForm(QWidget* parent) : QWidget(parent){
 			diffRevenue->setText(brazil.toCurrencyString(realInput - teamGoal));
 			updating = false;
 	});
+
+	connect(teams, &QComboBox::currentTextChanged, this, [=](){
+			static bool updating = false;
+			if(updating) return;
+			
+			QString validInput = dailyRevenue->text();
+			validInput.remove(QRegularExpression("[^\\d]"));
+
+			if(validInput.isEmpty()){
+				dailyRevenue->clear();
+				return;
+			}
+
+			qlonglong cents = validInput.toLongLong();
+			double realInput = cents / 100.0;
+			QString brazilianCurrency = brazil.toCurrencyString(realInput);
+
+			updating = true;
+			double teamGoal = getTeamDailyRevenueGoal(teams->currentData().toInt()) / 100.0;
+			if(realInput - teamGoal < 0){
+				goalAchieved->setText(Goal::Failed);
+			} else {
+				goalAchieved->setText(Goal::Success);
+			}
+			diffRevenue->setText(brazil.toCurrencyString(realInput - teamGoal));
+			updating = false;
+	});
+
 	connect(cancelButton, &QPushButton::clicked, this, &QWidget::close);
 	connect(saveButton, &QPushButton::clicked, this, [=](){
+			if((projectNumber->text().isEmpty()) || (projectNumber->text().toInt() <= 0 || dailyRevenue->text().isEmpty())){
+				QMessageBox::warning(this, "ATENÇÃO", "Insira um número de OV/NOTA e/ou para Produção");
+			} else {
 				if(goalAchieved->text() == Goal::Failed && (notAchievedReason->currentData().isNull() || sectorResponsible->currentData().isNull())) {
 						QMessageBox::warning(this, "ATENÇÃO", "Se a Meta do Dia não foi alcançada, deve haver um motivo");
 				} else {
@@ -166,9 +197,11 @@ DailyRevenueForm::DailyRevenueForm(QWidget* parent) : QWidget(parent){
 							return;
 							} else {
 							QMessageBox::information(this, "SUCESSO", "Produção Diária Adicionada");
+							this->close();
 						}
 
 				}
+			}
 	});
 
 
@@ -262,7 +295,7 @@ DailyRevenueForm::DailyRevenueForm(int dayID, QWidget* parent) : QWidget(parent)
 	sectorResponsible->addItem(Sector::None, Sector::None);
 	// Team ComboBox
 	QSqlQuery getTeams;
-	getTeams.prepare("SELECT id, team_name FROM teams;");
+	getTeams.prepare("SELECT id, team_name FROM teams ORDER BY team_name;");
 	if(getTeams.exec()){
 		while(getTeams.next()){
 			int id = getTeams.value(0).toInt();
@@ -285,24 +318,22 @@ DailyRevenueForm::DailyRevenueForm(int dayID, QWidget* parent) : QWidget(parent)
 
 	// Get data from Selected Row
 	QSqlQuery getData;
-	getData.prepare("SELECT project_number, date, id_team, total_daily_revenue, revenue_diff, "
-					"goal_achieved, responsible_sector, goal_unachieved_why FROM daily_revenue WHERE id = ?;");
+	getData.prepare("SELECT daily_revenue.date, daily_revenue.project_number, teams.team_name,"
+						 "printf('R$ %.2f', daily_revenue.total_daily_revenue/100.0), printf('R$ %.2f', revenue_diff/100.0), "
+						 "goal_achieved, daily_revenue.responsible_sector, "
+						 "daily_revenue.goal_unachieved_why "
+						 "FROM daily_revenue LEFT JOIN teams ON daily_revenue.id_team = teams.id WHERE daily_revenue.id = ?;");
 	getData.addBindValue(dayID);
 	if(getData.exec() && getData.next()){
-		revenueDate->setDate(QDate::fromString(getData.value(1).toString(), Qt::ISODate));
-		projectNumber->setText(getData.value(0).toString());
+		revenueDate->setDate(QDate::fromString(getData.value(0).toString(), Qt::ISODate));
+		projectNumber->setText(getData.value(1).toString());
+		teams->setCurrentText(getData.value(2).toString());
 		dailyRevenue->setText(getData.value(3).toString());
-		goalAchieved->setText(getData.value(5).toString());
 		diffRevenue->setText(getData.value(4).toString());
-		notAchievedReason->setCurrentText(getData.value(7).toString());
+		goalAchieved->setText(getData.value(5).toString());
 		sectorResponsible->setCurrentText(getData.value(6).toString());
+		notAchievedReason->setCurrentText(getData.value(7).toString());
 
-		QSqlQuery getTeam;
-		getTeam.prepare("SELECT team_name FROM teams WHERE id = ?;");
-		getTeam.addBindValue((getData.value(2)).toInt());
-		if(getTeam.exec() && getTeam.next()){
-			teams->setCurrentText(getTeam.value(0).toString());
-		}
 	} else {
 		QMessageBox::critical(this, "ERRO", "Erro ao buscar dado da linha: \n" + getData.lastError().text());
 		return;
@@ -337,14 +368,45 @@ DailyRevenueForm::DailyRevenueForm(int dayID, QWidget* parent) : QWidget(parent)
 			updating = false;
 	});
 
+	connect(teams, &QComboBox::currentTextChanged, this, [=](){
+			static bool updating = false;
+			if(updating) return;
+			
+			QString validInput = dailyRevenue->text();
+			validInput.remove(QRegularExpression("[^\\d]"));
+
+			if(validInput.isEmpty()){
+				dailyRevenue->clear();
+				return;
+			}
+
+			qlonglong cents = validInput.toLongLong();
+			double realInput = cents / 100.0;
+			QString brazilianCurrency = brazil.toCurrencyString(realInput);
+
+			updating = true;
+			double teamGoal = getTeamDailyRevenueGoal(teams->currentData().toInt()) / 100.0;
+			if(realInput - teamGoal < 0){
+				goalAchieved->setText(Goal::Failed);
+			} else {
+				goalAchieved->setText(Goal::Success);
+			}
+			diffRevenue->setText(brazil.toCurrencyString(realInput - teamGoal));
+			updating = false;
+	});
+
+
 	connect(cancelButton, &QPushButton::clicked, this, &QWidget::close);
 	connect(saveButton, &QPushButton::clicked, this, [=](){
+			if((projectNumber->text().isEmpty()) || (projectNumber->text().toInt() <= 0 && dailyRevenue->text().isEmpty())){
+				QMessageBox::warning(this, "ATENÇÃO", "Insira um número de OV/NOTA");
+			} else {
 				if(goalAchieved->text() == Goal::Failed && (notAchievedReason->currentData().isNull() || sectorResponsible->currentData().isNull())) {
 						QMessageBox::warning(this, "ATENÇÃO", "Se a Meta do Dia não foi alcançada, deve haver um motivo");
 				} else {
 						QSqlQuery saveRevenue;
 						saveRevenue.prepare("UPDATE daily_revenue SET project_number = ?, date = ?, id_team = ?, total_daily_revenue = ?, "
-								"revenue_diff = ?, goal_achieved = ?, responsible_sector = ?, goal_unachieved_why = ?;");
+								"revenue_diff = ?, goal_achieved = ?, responsible_sector = ?, goal_unachieved_why = ? WHERE daily_revenue.id = ?;");
 						saveRevenue.addBindValue(projectNumber->text().toInt());
 						saveRevenue.addBindValue(revenueDate->date().toString(Qt::ISODate));
 						saveRevenue.addBindValue(teams->currentData().toInt());
@@ -352,16 +414,19 @@ DailyRevenueForm::DailyRevenueForm(int dayID, QWidget* parent) : QWidget(parent)
 						saveRevenue.addBindValue(static_cast<int>(diffRevenue->text().remove(QRegularExpression("[^\\d-]")).toLongLong()));
 						saveRevenue.addBindValue(goalAchieved->text());
 						saveRevenue.addBindValue((sectorResponsible->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(sectorResponsible->currentData().toString()));
-							saveRevenue.addBindValue((notAchievedReason->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(notAchievedReason->currentData().toString()));
+						saveRevenue.addBindValue((notAchievedReason->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(notAchievedReason->currentData().toString()));
+						saveRevenue.addBindValue(dayID);
 
 						if(!saveRevenue.exec()){
 							QMessageBox::critical(this, "ERRO", "Falha ao atualizar dados no Banco de Dados:\n" + saveRevenue.lastError().text());
 							return;
 							} else {
 							QMessageBox::information(this, "SUCESSO", "Produção Diária Atualizada");
+							this->close();
 						}
 
 				}
+			}
 	});
 
 

@@ -64,9 +64,9 @@ TeamWindow::TeamWindow(QWidget* parent) : QWidget(parent){
 }
 
 void TeamWindow::showTeams(){
-	model->setQuery("SELECT teams.id, teams.team_name, printf('R$ %.2f', teams.team_daily_revenue_goal/100),"
+	model->setQuery("SELECT teams.id, teams.team_name, printf('R$ %.2f', teams.team_daily_revenue_goal/100.0),"
 			"fleet.fleet_number, teams.team_status, teams.team_commissioner,"
-			"teams.team_contact_number FROM teams LEFT JOIN fleet ON teams.id_fleet = fleet.id;");
+			"teams.team_contact_number FROM teams LEFT JOIN fleet ON teams.id_fleet = fleet.id ORDER BY teams.team_name ASC;");
 	model->setHeaderData(0,Qt::Horizontal,"ID");
 	model->setHeaderData(1,Qt::Horizontal,"EQUIPE");
 	model->setHeaderData(2,Qt::Horizontal,"META");

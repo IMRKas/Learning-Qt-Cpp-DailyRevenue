@@ -6,12 +6,16 @@
 #include <QSqlQueryModel>
 #include <QDateEdit>
 #include <QComboBox>
+#include "DailyRevenueForm.h"
 
 class DailyRevenueWindow : public QWidget{
 	Q_OBJECT
 	public:
 		DailyRevenueWindow(QWidget* parent = nullptr);
 		void showDailyRevenue();
+		void updateDailyRevenueById();
+		void deleteDailyRevenueById();
+		int getRowId();
 
 
 	private:
@@ -25,6 +29,8 @@ class DailyRevenueWindow : public QWidget{
 
 		QTableView* dailyTable{nullptr};
 		QSqlQueryModel* dailyModel{nullptr};
+		
+		DailyRevenueForm* formIsOpen{nullptr};
 };
 #endif
 

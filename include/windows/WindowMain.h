@@ -6,6 +6,7 @@
 #include <QComboBox>
 #include "TeamWindow.h"
 #include "FleetWindow.h"
+#include "DailyRevenueWindow.h"
 
 
 class WindowMain : public QWidget {
@@ -30,5 +31,6 @@ class WindowMain : public QWidget {
 
 		TeamWindow* openTeamTable{nullptr};
 		FleetWindow* openFleetTable{nullptr};
+		DailyRevenueWindow* openDailyTable{nullptr};
 };
 #endif

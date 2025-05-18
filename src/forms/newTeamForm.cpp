@@ -45,8 +45,9 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 	// ComboBox
 	teamFleetNumber->addItem("");
 	QSqlQuery getFleetOptions;
-	getFleetOptions.prepare("SELECT id, fleet_number FROM fleet WHERE id NOT IN (SELECT id_fleet FROM teams) "
-			"AND fleet_status NOT IN (?,?);");
+	getFleetOptions.prepare("SELECT id, fleet_number FROM fleet "
+			"WHERE NOT EXISTS (SELECT 1 FROM teams WHERE teams.id_fleet = fleet.id) "
+			"AND fleet_status NOT IN (?,?) ORDER BY fleet_number ASC;");
 	getFleetOptions.addBindValue(DbStatus::broken);
 	getFleetOptions.addBindValue(DbStatus::inWorkshop);
 	if(getFleetOptions.exec()){
@@ -82,14 +83,25 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 				insertNewTeam.prepare("INSERT INTO teams(team_name, team_status, team_commissioner, id_fleet, team_contact_number, team_daily_revenue_goal) VALUES (UPPER(?),?,UPPER(?), ?, ?, ?);");
 				insertNewTeam.addBindValue(teamName->text());
 				
-				insertNewTeam.addBindValue((teamStatus->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(teamStatus->currentData()));
+				insertNewTeam.addBindValue((teamStatus->currentData().isNull()) ? 
+											QVariant(QVariant::String) : QVariant(teamStatus->currentData()));
 
-				insertNewTeam.addBindValue(((teamCommissioner->text().isEmpty())||(teamStatus->currentText() == TeamStatus::InactiveTeam || teamStatus->currentText() == TeamStatus::DefunctTeam)) ? QVariant(QVariant::String) : QVariant(teamCommissioner->text()));
+				insertNewTeam.addBindValue(((teamCommissioner->text().isEmpty())||
+											(teamStatus->currentText() == TeamStatus::InactiveTeam || 
+											 teamStatus->currentText() == TeamStatus::DefunctTeam)) ? 
+											 QVariant(QVariant::String) : QVariant(teamCommissioner->text()));
 
-				insertNewTeam.addBindValue(((teamStatus->currentText() == TeamStatus::InactiveTeam || teamStatus->currentText() == TeamStatus::DefunctTeam) || teamFleetNumber->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(teamFleetNumber->currentData()));
+				insertNewTeam.addBindValue(((teamStatus->currentText() == TeamStatus::InactiveTeam || 
+								  			 teamStatus->currentText() == TeamStatus::DefunctTeam) || 
+											 teamFleetNumber->currentData().isNull()) ? 
+											 QVariant(QVariant::Int) : QVariant(teamFleetNumber->currentData()));
 
-				insertNewTeam.addBindValue((teamContactNumber->text().isEmpty()) ? QVariant(QVariant::String) : QVariant(teamContactNumber->text()));
-				insertNewTeam.addBindValue(static_cast<int>(teamGoal->text().remove(QRegularExpression("[^\\d]")).toLongLong()));
+				insertNewTeam.addBindValue((teamContactNumber->text().isEmpty()) ? 
+											QVariant(QVariant::String) : QVariant(teamContactNumber->text()));
+
+				insertNewTeam.addBindValue(
+						static_cast<int>(teamGoal->text().remove(QRegularExpression("[^\\d]")).toLongLong())
+						);
 
 				if(!insertNewTeam.exec()){
 					QMessageBox::critical(this, "ERRO", "Falha ao inserir nova equipe:\n" + insertNewTeam.lastError().text()); // 'Insert new team' error
@@ -162,9 +174,9 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 	// ComboBox
 	teamFleetNumber->addItem("");
 	QSqlQuery getFleetOptions;
-	getFleetOptions.prepare("SELECT id, fleet_number FROM fleet WHERE id NOT IN(SELECT id_fleet FROM teams) "
-			"AND fleet_status != ? "
-			"AND fleet_status != ?;");
+	getFleetOptions.prepare("SELECT id, fleet_number FROM fleet "
+			"WHERE NOT EXISTS (SELECT 1 FROM teams WHERE teams.id_fleet = fleet.id) "
+			"AND fleet_status NOT IN (?,?) ORDER BY fleet_number ASC;");
 	getFleetOptions.addBindValue(DbStatus::broken);
 	getFleetOptions.addBindValue(DbStatus::inWorkshop);
 	if(getFleetOptions.exec()){
@@ -193,7 +205,7 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 		teamStatus->setCurrentText(getTeamData.value(1).toString());
 		teamCommissioner->setText(getTeamData.value(2).toString());
 		teamContactNumber->setText((getTeamData.value(4).isNull()) ? "" : getTeamData.value(4).toString());
-		teamGoal->setText(brazil.toCurrencyString(getTeamData.value(5).toInt() / 100));
+		teamGoal->setText(brazil.toCurrencyString(getTeamData.value(5).toInt() / 100.0));
 
 		if(!getTeamData.value(3).isNull()){
 			QSqlQuery getFleetNumber;
@@ -218,11 +230,27 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 				QSqlQuery updateSelectedTeam;
 				updateSelectedTeam.prepare("UPDATE teams SET team_name = ?, team_status = ?, team_commissioner = ?, id_fleet = ?, team_contact_number = ?, team_daily_revenue_goal = ? WHERE id = ?;");
 				updateSelectedTeam.addBindValue(teamName->text());
-				updateSelectedTeam.addBindValue(teamStatus->currentData());
-				updateSelectedTeam.addBindValue(((teamCommissioner->text().isEmpty())||(teamStatus->currentText() == TeamStatus::InactiveTeam || teamStatus->currentText() == TeamStatus::DefunctTeam)) ? QVariant(QVariant::String) : QVariant(teamCommissioner->text()));
-				updateSelectedTeam.addBindValue((teamFleetNumber->currentData().isNull()) ? QVariant(QVariant::Int) : QVariant(teamFleetNumber->currentData()));
-				updateSelectedTeam.addBindValue(((teamStatus->currentText() == TeamStatus::InactiveTeam || teamStatus->currentText() == TeamStatus::DefunctTeam) || teamFleetNumber->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(teamContactNumber->text()));
-				updateSelectedTeam.addBindValue(static_cast<int>(teamGoal->text().remove(QRegularExpression("[^\\d]")).toLongLong()));
+				
+					updateSelectedTeam.addBindValue((teamStatus->currentData().isNull()) ? 
+											QVariant(QVariant::String) : QVariant(teamStatus->currentData()));
+
+				updateSelectedTeam.addBindValue(((teamCommissioner->text().isEmpty())||
+											(teamStatus->currentText() == TeamStatus::InactiveTeam || 
+											 teamStatus->currentText() == TeamStatus::DefunctTeam)) ? 
+											 QVariant(QVariant::String) : QVariant(teamCommissioner->text()));
+
+				updateSelectedTeam.addBindValue(((teamStatus->currentText() == TeamStatus::InactiveTeam || 
+								  			 teamStatus->currentText() == TeamStatus::DefunctTeam) || 
+											 teamFleetNumber->currentData().isNull()) ? 
+											 QVariant(QVariant::Int) : QVariant(teamFleetNumber->currentData()));
+
+				updateSelectedTeam.addBindValue((teamContactNumber->text().isEmpty()) ? 
+											QVariant(QVariant::String) : QVariant(teamContactNumber->text()));
+
+				updateSelectedTeam.addBindValue(
+						static_cast<int>(teamGoal->text().remove(QRegularExpression("[^\\d]")).toLongLong())
+						);
+
 				updateSelectedTeam.addBindValue(teamID);
 
 				if(!updateSelectedTeam.exec()){

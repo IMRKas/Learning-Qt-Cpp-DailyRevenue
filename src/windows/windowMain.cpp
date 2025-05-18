@@ -21,8 +21,17 @@ WindowMain::WindowMain(QWidget* parent) : QWidget(parent){
 	mainWindowMenuLayout->addWidget(getTeams);
 	mainWindowMenuLayout->addWidget(getFleet);
 
-
 	// Setting Connect
+	connect(dailyRevenue, &QPushButton::clicked, this, [=](){
+			if(!openDailyTable){
+				openDailyTable = new DailyRevenueWindow();
+				openDailyTable->show();
+
+				connect(openDailyTable, &QObject::destroyed, this, [this](){
+						this->openDailyTable = nullptr;
+				});
+			}
+	});
 	connect(getTeams, &QPushButton::clicked, this, [=](){
 			if(!openTeamTable){
 				openTeamTable = new TeamWindow();
