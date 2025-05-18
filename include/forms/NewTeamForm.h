@@ -18,6 +18,7 @@ class NewTeamForm : public QWidget {
 		QPushButton* saveButton;
 		QPushButton* cancelButton;
 		QLineEdit* teamName{nullptr};
+		QLineEdit* teamGoal{nullptr};
 		QLineEdit* teamCommissioner{nullptr};
 		QLineEdit* teamContactNumber{nullptr};
 		QComboBox* teamFleetNumber{nullptr};

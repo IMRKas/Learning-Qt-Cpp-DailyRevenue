@@ -64,14 +64,16 @@ TeamWindow::TeamWindow(QWidget* parent) : QWidget(parent){
 }
 
 void TeamWindow::showTeams(){
-	model->setQuery("SELECT teams.id, teams.team_name, fleet.fleet_number, teams.team_status, teams.team_commissioner,"
+	model->setQuery("SELECT teams.id, teams.team_name, printf('R$ %.2f', teams.team_daily_revenue_goal/100),"
+			"fleet.fleet_number, teams.team_status, teams.team_commissioner,"
 			"teams.team_contact_number FROM teams LEFT JOIN fleet ON teams.id_fleet = fleet.id;");
 	model->setHeaderData(0,Qt::Horizontal,"ID");
 	model->setHeaderData(1,Qt::Horizontal,"EQUIPE");
-	model->setHeaderData(2,Qt::Horizontal,"FROTA");
-	model->setHeaderData(3,Qt::Horizontal,"STATUS");
-	model->setHeaderData(4,Qt::Horizontal,"ENCARREGADO");
-	model->setHeaderData(5,Qt::Horizontal,"CONTATO");
+	model->setHeaderData(2,Qt::Horizontal,"META");
+	model->setHeaderData(3,Qt::Horizontal,"FROTA");
+	model->setHeaderData(4,Qt::Horizontal,"STATUS");
+	model->setHeaderData(5,Qt::Horizontal,"ENCARREGADO");
+	model->setHeaderData(6,Qt::Horizontal,"CONTATO");
 
 	teamsView->resizeColumnsToContents();
 }

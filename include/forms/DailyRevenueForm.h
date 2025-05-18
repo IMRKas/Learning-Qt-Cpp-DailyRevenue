@@ -16,7 +16,7 @@ class DailyRevenueForm : public QWidget{
 	Q_OBJECT
 	public:
 		DailyRevenueForm(QWidget* parent = nullptr);
-		//DailyRevenueForm(int revenueID, QWidget* parent = nullptr);
+		DailyRevenueForm(int dayID, QWidget* parent = nullptr);
 
 	    int getTeamDailyRevenueGoal(int team_id);
 		
@@ -40,9 +40,7 @@ class DailyRevenueForm : public QWidget{
 		QLabel* dateLabel{nullptr};
 		QLabel* teamLabel{nullptr};
 		QLabel* projectLabel{nullptr};
-		QLabel* revenueLabel{nullptr};
 		QLabel* goalLabel{nullptr};
-		QLabel* sectorLabel{nullptr};
 		QLabel* reasonLabel{nullptr};
 		QLabel* diffLabel{nullptr};
 

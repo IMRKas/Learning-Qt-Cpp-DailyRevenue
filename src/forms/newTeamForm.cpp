@@ -29,6 +29,7 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 
 	// Form
 	teamName = new QLineEdit(this); teamName->setMaxLength(8);
+	teamGoal = new QLineEdit(this); teamGoal->setMaxLength(12);
 	teamCommissioner = new QLineEdit(this); teamCommissioner->setMaxLength(25);
 	teamContactNumber = new QLineEdit(this);
 	teamFleetNumber = new QComboBox(this);
@@ -36,6 +37,7 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 
 	teamFormLayout->addRow("Equipe",teamName);
 	teamFormLayout->addRow("Status",teamStatus);
+	teamFormLayout->addRow("Meta", teamGoal);
 	teamFormLayout->addRow("Encarregado",teamCommissioner);
 	teamFormLayout->addRow("Frota", teamFleetNumber);
 	teamFormLayout->addRow("Contato",teamContactNumber);
@@ -43,9 +45,8 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 	// ComboBox
 	teamFleetNumber->addItem("");
 	QSqlQuery getFleetOptions;
-	getFleetOptions.prepare("SELECT id, fleet_number FROM fleet WHERE id NOT IN(SELECT id_fleet FROM teams) "
-			"AND fleet_status != ? "
-			"AND fleet_status != ?;");
+	getFleetOptions.prepare("SELECT id, fleet_number FROM fleet WHERE id NOT IN (SELECT id_fleet FROM teams) "
+			"AND fleet_status NOT IN (?,?);");
 	getFleetOptions.addBindValue(DbStatus::broken);
 	getFleetOptions.addBindValue(DbStatus::inWorkshop);
 	if(getFleetOptions.exec()){
@@ -62,6 +63,13 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 	teamStatus->addItem(TeamStatus::InactiveTeam,TeamStatus::InactiveTeam.toUpper()); 
 	teamStatus->addItem(TeamStatus::DefunctTeam,TeamStatus::DefunctTeam.toUpper()); 
 
+	// Regex and currency Format
+	QLocale brazil(QLocale::Portuguese, QLocale::Brazil);
+	QRegularExpression regex("\\d+");
+	teamGoal->setValidator(new QRegularExpressionValidator(regex, teamGoal));
+	
+
+
 	// Connects
 	connect(cancelButton, &QPushButton::clicked, this, &QWidget::close);
 	connect(saveButton, &QPushButton::clicked, this, [=](){
@@ -71,7 +79,7 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 				QMessageBox::warning(this,"ATENÇÃO", "Para equipes que estão trabalhando, insira o nome do Encarregado");
 			} else {
 				QSqlQuery insertNewTeam;
-				insertNewTeam.prepare("INSERT INTO teams(team_name, team_status, team_commissioner, id_fleet, team_contact_number) VALUES (UPPER(?),?,UPPER(?), ?, ?);");
+				insertNewTeam.prepare("INSERT INTO teams(team_name, team_status, team_commissioner, id_fleet, team_contact_number, team_daily_revenue_goal) VALUES (UPPER(?),?,UPPER(?), ?, ?, ?);");
 				insertNewTeam.addBindValue(teamName->text());
 				
 				insertNewTeam.addBindValue((teamStatus->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(teamStatus->currentData()));
@@ -81,6 +89,7 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 				insertNewTeam.addBindValue(((teamStatus->currentText() == TeamStatus::InactiveTeam || teamStatus->currentText() == TeamStatus::DefunctTeam) || teamFleetNumber->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(teamFleetNumber->currentData()));
 
 				insertNewTeam.addBindValue((teamContactNumber->text().isEmpty()) ? QVariant(QVariant::String) : QVariant(teamContactNumber->text()));
+				insertNewTeam.addBindValue(static_cast<int>(teamGoal->text().remove(QRegularExpression("[^\\d]")).toLongLong()));
 
 				if(!insertNewTeam.exec()){
 					QMessageBox::critical(this, "ERRO", "Falha ao inserir nova equipe:\n" + insertNewTeam.lastError().text()); // 'Insert new team' error
@@ -92,6 +101,27 @@ NewTeamForm::NewTeamForm(QWidget* parent) : QWidget(parent){
 					return;
 					}
 			}
+			});
+
+	// Formating team goal
+	connect(teamGoal, &QLineEdit::textChanged, [=](const  QString &line){
+			static bool updating = false;
+			if(updating) return;
+			
+			QString goal = line;
+			goal.remove(QRegularExpression("[^\\d]"));
+			if(goal.isEmpty()){
+				teamGoal->clear();
+				return;
+			}
+
+			qlonglong cents = goal.toLongLong();
+			double goalReal = cents / 100.0;
+
+			updating = true;
+			teamGoal->setText(brazil.toCurrencyString(goalReal));
+			updating = false;
+
 			});
 }
 
@@ -116,6 +146,7 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 
 	// Form
 	teamName = new QLineEdit(this); teamName->setMaxLength(8);
+	teamGoal = new QLineEdit(this); teamGoal->setMaxLength(12);
 	teamCommissioner = new QLineEdit(this); teamCommissioner->setMaxLength(25);
 	teamContactNumber = new QLineEdit(this);
 	teamFleetNumber = new QComboBox(this);
@@ -123,6 +154,7 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 
 	teamFormLayout->addRow("Equipe",teamName);
 	teamFormLayout->addRow("Status",teamStatus);
+	teamFormLayout->addRow("Meta", teamGoal);
 	teamFormLayout->addRow("Encarregado",teamCommissioner);
 	teamFormLayout->addRow("Frota", teamFleetNumber);
 	teamFormLayout->addRow("Contato",teamContactNumber);
@@ -146,15 +178,22 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 	teamStatus->addItem(TeamStatus::InactiveTeam,TeamStatus::InactiveTeam.toUpper()); 
 	teamStatus->addItem(TeamStatus::DefunctTeam,TeamStatus::DefunctTeam.toUpper()); 
 
+	// Regex and currency Format
+	QLocale brazil(QLocale::Portuguese, QLocale::Brazil);
+	QRegularExpression regex("\\d+");
+	teamGoal->setValidator(new QRegularExpressionValidator(regex, teamGoal));
+
+
 	// Get data From fleet and team tables
 	QSqlQuery getTeamData;
-	getTeamData.prepare("SELECT team_name, team_status, team_commissioner, id_fleet, team_contact_number FROM teams WHERE id = ?;");
+	getTeamData.prepare("SELECT team_name, team_status, team_commissioner, id_fleet, team_contact_number, team_daily_revenue_goal FROM teams WHERE id = ?;");
 	getTeamData.addBindValue(teamID);
 	if(getTeamData.exec() && getTeamData.next()){
 		teamName->setText(getTeamData.value(0).toString());
 		teamStatus->setCurrentText(getTeamData.value(1).toString());
 		teamCommissioner->setText(getTeamData.value(2).toString());
 		teamContactNumber->setText((getTeamData.value(4).isNull()) ? "" : getTeamData.value(4).toString());
+		teamGoal->setText(brazil.toCurrencyString(getTeamData.value(5).toInt() / 100));
 
 		if(!getTeamData.value(3).isNull()){
 			QSqlQuery getFleetNumber;
@@ -168,9 +207,6 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 		}
 	}
 
-
-
-
 	// Connects
 	connect(cancelButton, &QPushButton::clicked, this, &QWidget::close);
 	connect(saveButton, &QPushButton::clicked, this, [=](){
@@ -180,12 +216,13 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 				QMessageBox::warning(this,"ATENÇÃO", "Para equipes que estão trabalhando, insira o nome do Encarregado");
 			} else {
 				QSqlQuery updateSelectedTeam;
-				updateSelectedTeam.prepare("UPDATE teams SET team_name = ?, team_status = ?, team_commissioner = ?, id_fleet = ?, team_contact_number = ? WHERE id = ?;");
+				updateSelectedTeam.prepare("UPDATE teams SET team_name = ?, team_status = ?, team_commissioner = ?, id_fleet = ?, team_contact_number = ?, team_daily_revenue_goal = ? WHERE id = ?;");
 				updateSelectedTeam.addBindValue(teamName->text());
 				updateSelectedTeam.addBindValue(teamStatus->currentData());
 				updateSelectedTeam.addBindValue(((teamCommissioner->text().isEmpty())||(teamStatus->currentText() == TeamStatus::InactiveTeam || teamStatus->currentText() == TeamStatus::DefunctTeam)) ? QVariant(QVariant::String) : QVariant(teamCommissioner->text()));
 				updateSelectedTeam.addBindValue((teamFleetNumber->currentData().isNull()) ? QVariant(QVariant::Int) : QVariant(teamFleetNumber->currentData()));
 				updateSelectedTeam.addBindValue(((teamStatus->currentText() == TeamStatus::InactiveTeam || teamStatus->currentText() == TeamStatus::DefunctTeam) || teamFleetNumber->currentData().isNull()) ? QVariant(QVariant::String) : QVariant(teamContactNumber->text()));
+				updateSelectedTeam.addBindValue(static_cast<int>(teamGoal->text().remove(QRegularExpression("[^\\d]")).toLongLong()));
 				updateSelectedTeam.addBindValue(teamID);
 
 				if(!updateSelectedTeam.exec()){
@@ -199,4 +236,25 @@ NewTeamForm::NewTeamForm(int teamID, QWidget* parent) : QWidget(parent){
 					}
 			}
 		});
+
+	// Formating team goal
+	connect(teamGoal, &QLineEdit::textChanged, [=](const QString &line){
+			static bool updating = false;
+			if(updating) return;
+			
+			QString goal = line;
+			goal.remove(QRegularExpression("[^\\d]"));
+			if(goal.isEmpty()){
+				teamGoal->clear();
+				return;
+			}
+
+			qlonglong cents = goal.toLongLong();
+			double goalReal = cents / 100.0;
+
+			updating = true;
+			teamGoal->setText(brazil.toCurrencyString(goalReal));
+			updating = false;
+
+			});
 }

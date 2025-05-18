@@ -12,7 +12,7 @@ DailyRevenueWindow::DailyRevenueWindow(QWidget* parent) : QWidget(parent){
 	QVBoxLayout* dailyWindowLayout = new QVBoxLayout(this);
 	QHBoxLayout* menuBar = new QHBoxLayout;
 
-	// Buttons
+	// Buttons, ComboBox, QDateEdit
 	newDailyRevenue = new QPushButton(this);
 	updateDailyRevenue = new QPushButton(this);
 	deleteDailyRevenue = new QPushButton(this);
@@ -20,6 +20,7 @@ DailyRevenueWindow::DailyRevenueWindow(QWidget* parent) : QWidget(parent){
 	filterByReason = new QComboBox(this);
 	filterByDate = new QDateEdit(this);
 	
+
 
 }
 

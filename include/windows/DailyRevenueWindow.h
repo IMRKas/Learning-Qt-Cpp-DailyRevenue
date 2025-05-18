@@ -25,8 +25,6 @@ class DailyRevenueWindow : public QWidget{
 
 		QTableView* dailyTable{nullptr};
 		QSqlQueryModel* dailyModel{nullptr};
-		
-
 };
 #endif
 

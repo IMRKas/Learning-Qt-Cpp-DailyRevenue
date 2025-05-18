@@ -26,8 +26,8 @@ int main(int argc, char *argv[]){
 	createTableTeams();
 	createTableFleet();
 
-	//WindowMain windowMain;
-	//windowMain.show();
+	WindowMain windowMain;
+	windowMain.show();
 	DailyRevenueForm* drForm = new DailyRevenueForm();
 	drForm->show();
 
