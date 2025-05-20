@@ -74,9 +74,6 @@ FleetWindow::FleetWindow(QWidget* parent) : QWidget(parent){
 				connect(fleetForm, &QObject::destroyed, this, [this](){
 					this->fleetForm = nullptr;
 					showFleet();
-					filterByAny->setText("");
-					filterByStatus->setCurrentText("Todos");
-					filterByType->setCurrentText("Todos");
 				});
 			}
 	});
@@ -94,9 +91,6 @@ FleetWindow::FleetWindow(QWidget* parent) : QWidget(parent){
 				connect(fleetForm, &QObject::destroyed, this, [this](){
 					this->fleetForm = nullptr;
 					showFleet();
-					filterByAny->setText("");
-					filterByStatus->setCurrentText("Todos");
-					filterByType->setCurrentText("Todos");
 				});
 			} else {
 				QMessageBox::warning(this, "ATENÇÃO", "Só é possivel atualizar um item de cada vez.\nFeche a janela ou finalize o item aberto.");
@@ -104,8 +98,8 @@ FleetWindow::FleetWindow(QWidget* parent) : QWidget(parent){
 			}
 	});
 	connect(filterByAny, &QLineEdit::textChanged, this, &FleetWindow::filterFleetByAny);
-	connect(filterByStatus, &QComboBox::currentTextChanged, this, &FleetWindow::filterFleetByStatusAndType);
-	connect(filterByType, &QComboBox::currentTextChanged, this, &FleetWindow::filterFleetByStatusAndType);
+	connect(filterByStatus, &QComboBox::currentTextChanged, this, &FleetWindow::filterFleetByAny);
+	connect(filterByType, &QComboBox::currentTextChanged, this, &FleetWindow::filterFleetByAny);
 
 	showFleet();
 	fleetHeader->setSectionResizeMode(5,QHeaderView::Stretch);
@@ -114,6 +108,10 @@ FleetWindow::FleetWindow(QWidget* parent) : QWidget(parent){
 void FleetWindow::showFleet(){
 	fleetModel->setQuery("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet "
 			" ORDER BY fleet_number ASC;");
+	headerDefinition();
+}
+
+void FleetWindow::headerDefinition(){
 	fleetModel->setHeaderData(0,Qt::Horizontal,"ID");
 	fleetModel->setHeaderData(1,Qt::Horizontal,"FROTA");
 	fleetModel->setHeaderData(2,Qt::Horizontal,"TIPO");
@@ -125,6 +123,7 @@ void FleetWindow::showFleet(){
 	fleetView->resizeRowsToContents();
 	fleetView->setWordWrap(true);
 }
+
 
 void FleetWindow::deleteFleetById(){
 		QModelIndex fleetIndex = fleetView->currentIndex();
@@ -148,71 +147,49 @@ void FleetWindow::deleteFleetById(){
 }
 
 void FleetWindow::filterFleetByAny(){
-	filterByStatus->setCurrentText("Todos");
-	filterByType->setCurrentText("Todos");
-	QString filterLineEdit = '%' + filterByAny->text() + '%';
-	QSqlQuery filterByAnyQuery;
-	filterByAnyQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate,"
-							 "fleet_status, status_observation FROM fleet WHERE id LIKE ? OR fleet_number LIKE ? "
-							 "OR fleet_type LIKE UPPER(?) OR license_plate LIKE UPPER(?) OR fleet_status LIKE UPPER(?) OR status_observation LIKE UPPER(?);");
-	filterByAnyQuery.addBindValue(filterLineEdit);
-	filterByAnyQuery.addBindValue(filterLineEdit);
-	filterByAnyQuery.addBindValue(filterLineEdit);
-	filterByAnyQuery.addBindValue(filterLineEdit);
-	filterByAnyQuery.addBindValue(filterLineEdit);
-	filterByAnyQuery.addBindValue(filterLineEdit);
-	if(!filterByAnyQuery.exec()){
-		QMessageBox::critical(this,"ERRO","Falha ao buscar items:\n" + filterByAnyQuery.lastError().text());
-		return;
-	} else {
-		fleetModel->setQuery(filterByAnyQuery);
-		fleetModel->setHeaderData(0,Qt::Horizontal,"ID");
-		fleetModel->setHeaderData(1,Qt::Horizontal,"FROTA");
-		fleetModel->setHeaderData(2,Qt::Horizontal,"TIPO");
-		fleetModel->setHeaderData(3,Qt::Horizontal,"PLACA");
-		fleetModel->setHeaderData(4,Qt::Horizontal,"STATUS");
-		fleetModel->setHeaderData(5,Qt::Horizontal,"OBSERVAÇÃO");
 
-		fleetView->resizeColumnsToContents();
-		fleetView->resizeRowsToContents();
-		fleetView->setWordWrap(true);
+	QString filterQuery = "SELECT id, fleet_number, fleet_type, license_plate,"
+						  "fleet_status, status_observation FROM fleet"; 
+	QStringList filters;
+	QList<QVariant> values;
 
+	if(!filterByAny->text().isEmpty()){
+		filters << "(id LIKE ? OR fleet_number LIKE ? OR fleet_type LIKE UPPER(?) OR license_plate LIKE UPPER(?) OR fleet_status LIKE UPPER(?) OR status_observation LIKE UPPER(?))";
+		QString keyword = '%' + filterByAny->text() + '%';
+		for(int i = 0; i < 6; ++i){
+			values << keyword; 
+		}
 	}
+
+	if(filterByStatus->currentText() != "Todos"){
+		filters << "fleet_status = UPPER(?)";
+		values << filterByStatus->currentData();
+	}
+
+	if(filterByType->currentText() != "Todos"){
+		filters << "fleet_type = UPPER(?)";
+		values << filterByType->currentData();
+	}
+
+	if(!filters.isEmpty()){
+		filterQuery += " WHERE " + filters.join(" AND ");
+	}
+
+	filterQuery += " ORDER BY fleet_number ASC;";
+
+	QSqlQuery filterAny;
+	filterAny.prepare(filterQuery);
+	for(const QVariant &v : values){
+		filterAny.addBindValue(v);
+	}
+
+	if(!filterAny.exec()){
+		QMessageBox::critical(this, "ERRO", "Erro ao Aplicar Filtro:\n" + filterAny.lastError().text());
+		return;
+	}
+
+	fleetModel->setQuery(filterAny);
+	headerDefinition();
+
 }
 
-void FleetWindow::filterFleetByStatusAndType(){
-	if(filterByStatus->currentText() == "Todos" && filterByType->currentText() == "Todos"){
-		showFleet();
-		return;
-	}
-	QSqlQuery statusQuery;
-	if(filterByStatus->currentText() != "Todos" && filterByType->currentText() == "Todos"){
-		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_status = UPPER(?) ORDER BY fleet_number ASC;");
-		statusQuery.addBindValue(filterByStatus->currentText());
-	} else if(filterByStatus->currentText() == "Todos" && filterByType->currentText() != "Todos"){
-		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_type = UPPER(?) ORDER BY fleet_number ASC;");
-		statusQuery.addBindValue(filterByType->currentData());
-	} else {
-		statusQuery.prepare("SELECT id, fleet_number, fleet_type, license_plate, fleet_status, status_observation FROM fleet WHERE fleet_status = UPPER(?) AND fleet_type = UPPER(?) ORDER BY fleet_number ASC");
-		statusQuery.addBindValue(filterByStatus->currentText());
-		statusQuery.addBindValue(filterByType->currentData());
-	}
-
-	if(!statusQuery.exec()){
-		QMessageBox::critical(this, "ERRO", "Falha ao filtrar Itens:\n" + statusQuery.lastError().text());
-		return;
-	} else {
-		fleetModel->setQuery(statusQuery);
-		fleetModel->setHeaderData(0,Qt::Horizontal,"ID");
-		fleetModel->setHeaderData(1,Qt::Horizontal,"FROTA");
-		fleetModel->setHeaderData(2,Qt::Horizontal,"TIPO");
-		fleetModel->setHeaderData(3,Qt::Horizontal,"PLACA");
-		fleetModel->setHeaderData(4,Qt::Horizontal,"STATUS");
-		fleetModel->setHeaderData(5,Qt::Horizontal,"OBSERVAÇÃO");
-
-		fleetView->resizeColumnsToContents();
-		fleetView->resizeRowsToContents();
-		fleetView->setWordWrap(true);
-
-	}
-}

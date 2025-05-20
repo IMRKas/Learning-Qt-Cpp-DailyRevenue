@@ -6,6 +6,7 @@
 #include <QSqlQueryModel>
 #include <QDateEdit>
 #include <QComboBox>
+#include <QCheckBox>
 #include "DailyRevenueForm.h"
 
 class DailyRevenueWindow : public QWidget{
@@ -15,6 +16,8 @@ class DailyRevenueWindow : public QWidget{
 		void showDailyRevenue();
 		void updateDailyRevenueById();
 		void deleteDailyRevenueById();
+		void headerDefinition();
+		void filterByAny();
 		int getRowId();
 
 
@@ -24,6 +27,7 @@ class DailyRevenueWindow : public QWidget{
 		QPushButton* deleteDailyRevenue{nullptr};
 		QComboBox* filterByTeam{nullptr};
 		QComboBox* filterByReason{nullptr};
+		QCheckBox* willFilterByDate{nullptr};
 
 		QDateEdit* filterByDate{nullptr};
 
@@ -31,6 +35,7 @@ class DailyRevenueWindow : public QWidget{
 		QSqlQueryModel* dailyModel{nullptr};
 		
 		DailyRevenueForm* formIsOpen{nullptr};
+
 };
 #endif
 

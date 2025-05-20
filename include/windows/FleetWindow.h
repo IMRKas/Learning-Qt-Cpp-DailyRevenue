@@ -15,6 +15,7 @@ class FleetWindow : public QWidget{
 		FleetWindow(QWidget* parent = nullptr);
 
 		void showFleet();
+		void headerDefinition();
 		void deleteFleetById();
 		void filterFleetByAny();
 		void filterFleetByStatusAndType();

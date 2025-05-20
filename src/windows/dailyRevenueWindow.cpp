@@ -26,11 +26,13 @@ DailyRevenueWindow::DailyRevenueWindow(QWidget* parent) : QWidget(parent){
 	filterByTeam = new QComboBox(this);
 	filterByReason = new QComboBox(this);
 	filterByDate = new QDateEdit(this);
+	willFilterByDate = new QCheckBox("Filtrar por Data");
 
 	// Layouts Settings
 	menuBar->addWidget(newDailyRevenue);
 	menuBar->addWidget(updateDailyRevenue);
 	menuBar->addWidget(deleteDailyRevenue);
+	menuBar->addWidget(willFilterByDate);
 	menuBar->addWidget(filterByDate);
 	menuBar->addWidget(filterByTeam);
 	menuBar->addWidget(filterByReason);
@@ -67,6 +69,14 @@ DailyRevenueWindow::DailyRevenueWindow(QWidget* parent) : QWidget(parent){
 
 	// Connects
 
+	connect(willFilterByDate, &QCheckBox::toggled, this, [=](){
+			filterByAny();	
+			connect(filterByDate, &QDateEdit::dateChanged, this, [=](){
+					filterByAny();
+					});
+			});
+	connect(filterByTeam, &QComboBox::currentTextChanged, this, &DailyRevenueWindow::filterByAny);
+	connect(filterByReason, &QComboBox::currentTextChanged, this, &DailyRevenueWindow::filterByAny);
 	connect(deleteDailyRevenue, &QPushButton::clicked, this, &DailyRevenueWindow::deleteDailyRevenueById);
 	connect(updateDailyRevenue, &QPushButton::clicked, this, &DailyRevenueWindow::updateDailyRevenueById);
 	connect(newDailyRevenue, &QPushButton::clicked, this, [=](){
@@ -80,9 +90,63 @@ DailyRevenueWindow::DailyRevenueWindow(QWidget* parent) : QWidget(parent){
 						});
 				}
 			});
+
+	// QDateEdit settings
+	QDate currentDate = QDate::currentDate();
+	filterByDate->setDate(currentDate);
+	filterByDate->setCalendarPopup(true);
+	filterByDate->setDisplayFormat("dd/MM/yyyy");
+	filterByDate->setLocale(QLocale(QLocale::Portuguese, QLocale::Brazil));
  
 	showDailyRevenue();
-	dailyTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	for(int col = 1; col < 8; ++col){
+		dailyTable->horizontalHeader()->setSectionResizeMode(col, QHeaderView::Stretch);
+	}
+}
+void DailyRevenueWindow::filterByAny(){
+	QStringList filters;
+	QList<QVariant> values;
+
+	QString filterQuery = "SELECT daily_revenue.id, daily_revenue.date, daily_revenue.project_number, teams.team_name,"
+						 "printf('R$ %.2f', daily_revenue.total_daily_revenue/100.0),"
+						 "printf('R$ %.2f', daily_revenue.revenue_diff/100.0), goal_achieved, daily_revenue.responsible_sector, "
+						 "daily_revenue.goal_unachieved_why "
+						 "FROM daily_revenue LEFT JOIN teams ON daily_revenue.id_team = teams.id";
+
+	if(willFilterByDate->isChecked()){
+		filters << "daily_revenue.date = ?";
+		values << filterByDate->date().toString(Qt::ISODate);
+	}
+
+	if(!filterByTeam->currentData().isNull()){
+		filters << "daily_revenue.id_team = ?";
+		values << filterByTeam->currentData();
+	}
+
+	if(!filterByReason->currentData().isNull()){
+		filters << "daily_revenue.goal_unachieved_why = ?";
+		values << filterByReason->currentData();
+	}
+
+	if(!filters.isEmpty()){
+		filterQuery += " WHERE " + filters.join(" AND ");
+	}
+
+	filterQuery += " ORDER BY daily_revenue.date DESC;"; 
+
+	QSqlQuery filtering;
+	filtering.prepare(filterQuery);
+	for( const QVariant &v : values ){
+		filtering.addBindValue(v);
+	}
+
+	if(!filtering.exec()){
+		QMessageBox::critical(this, "ERRO", "Falha ao Aplicar Filtro:\n" + filtering.lastError().text());
+		return;
+	}
+
+	dailyModel->setQuery(filtering);
+	headerDefinition();
 }
 
 void DailyRevenueWindow::deleteDailyRevenueById(){
@@ -119,22 +183,28 @@ void DailyRevenueWindow::updateDailyRevenueById(){
 void DailyRevenueWindow::showDailyRevenue(){
 	dailyModel->setQuery("SELECT daily_revenue.id, daily_revenue.date, daily_revenue.project_number, teams.team_name,"
 						 "printf('R$ %.2f', daily_revenue.total_daily_revenue/100.0),"
-						 "printf('R$ %.2f', daily_revenue.revenue_diff/100.0), daily_revenue.responsible_sector, "
+						 "printf('R$ %.2f', daily_revenue.revenue_diff/100.0), goal_achieved, daily_revenue.responsible_sector, "
 						 "daily_revenue.goal_unachieved_why "
 						 "FROM daily_revenue LEFT JOIN teams ON daily_revenue.id_team = teams.id "
 						 "ORDER BY daily_revenue.date DESC;");
-	qDebug() << dailyModel->lastError().text();
+	headerDefinition();
+}
+
+void DailyRevenueWindow::headerDefinition(){
+
 	dailyModel->setHeaderData(0,Qt::Horizontal,"ID");
 	dailyModel->setHeaderData(1,Qt::Horizontal,"DATA");
 	dailyModel->setHeaderData(2,Qt::Horizontal,"OV/NOTA");
 	dailyModel->setHeaderData(3,Qt::Horizontal,"EQUIPE");
 	dailyModel->setHeaderData(4,Qt::Horizontal,"PRODUÇÃO");
 	dailyModel->setHeaderData(5,Qt::Horizontal,"DIFERENÇA");
-	dailyModel->setHeaderData(6,Qt::Horizontal,"RESPONSÁVEL");
-	dailyModel->setHeaderData(7,Qt::Horizontal,"MOTIVO");
+	dailyModel->setHeaderData(6,Qt::Horizontal,"META");
+	dailyModel->setHeaderData(7,Qt::Horizontal,"RESPONSÁVEL");
+	dailyModel->setHeaderData(8,Qt::Horizontal,"MOTIVO");
 
 	dailyTable->resizeColumnsToContents();
 	dailyTable->resizeRowsToContents();
+	dailyTable->setWordWrap(true);
 }
 
 int DailyRevenueWindow::getRowId(){
