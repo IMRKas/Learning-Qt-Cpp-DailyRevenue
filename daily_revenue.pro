@@ -1,6 +1,6 @@
 TEMPLATE = app
 CONFIG += c++17 console
-QT += widgets core gui sql
+QT += widgets core gui sql charts
 INCLUDEPATH += include include/windows include/forms
 
 SOURCES +=	\ 

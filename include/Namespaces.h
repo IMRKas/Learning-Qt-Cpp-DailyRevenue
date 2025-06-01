@@ -43,31 +43,5 @@ namespace Goal {
 	const QString Failed = "Não Atingida";
 };
 
-namespace ShortfallReasons{
-	const QString LackOfMaterial = "Falta de Material";
-	const QString InterjourneyTeam = "Equipe de Interjornada";
-	const QString EmergencyService = "Atendimento a Emergência";
-	const QString PerformFailure = "Falha na Execução";
-	const QString PlainningFailure = "Falha no Planejamento";
-	const QString LowRevenueProgramming = "Programação a Menor";
-	const QString DifficultiesDueToRain = "Dificuldades devido a Chuva";
-	const QString LowRevenueJob = "Obra de baixa Produtividade";
-	const QString DifficultiesDueToComplexity = "Dificuldades devido a complexidade da Obra";
-	const QString MechanicalIssue = "Problemas Mecânicos";
-	const QString TeamBreak = "Folga dada a Equipe";
-};
-
-namespace Sector {
-	const QString Ccm = "CCM";
-	const QString Warehouse = "ALMOX";
-	const QString Sesmt = "SESMT";
-	const QString Fleet = "FROTA";
-	const QString Client = "EDP";
-	const QString Team = "EQUIPE";
-	const QString None = "N/A";
-};
-
-
-
 #endif
 

@@ -40,19 +40,15 @@ DailyRevenueWindow::DailyRevenueWindow(QWidget* parent) : QWidget(parent){
 	dailyWindowLayout->addLayout(menuBar);
 	dailyWindowLayout->addWidget(dailyTable);
 
-	// ComboBox settings
+	// Reasons Combo Box settings
 	filterByReason->addItem("");
-	filterByReason->addItem(ShortfallReasons::LackOfMaterial, ShortfallReasons::LackOfMaterial);
-	filterByReason->addItem(ShortfallReasons::InterjourneyTeam, ShortfallReasons::InterjourneyTeam);
-	filterByReason->addItem(ShortfallReasons::EmergencyService, ShortfallReasons::EmergencyService);
-	filterByReason->addItem(ShortfallReasons::PerformFailure, ShortfallReasons::PerformFailure);  
-	filterByReason->addItem(ShortfallReasons::PlainningFailure, ShortfallReasons::PlainningFailure); 
-	filterByReason->addItem(ShortfallReasons::LowRevenueProgramming, ShortfallReasons::LowRevenueProgramming);
-	filterByReason->addItem(ShortfallReasons::DifficultiesDueToRain, ShortfallReasons::DifficultiesDueToRain);  
-	filterByReason->addItem(ShortfallReasons::LowRevenueJob, ShortfallReasons::LowRevenueJob);
-	filterByReason->addItem(ShortfallReasons::DifficultiesDueToComplexity, ShortfallReasons::DifficultiesDueToComplexity);
-	filterByReason->addItem(ShortfallReasons::TeamBreak, ShortfallReasons::TeamBreak);
-
+	QSqlQuery getReasons;
+	getReasons.prepare("SELECT id, reason FROM reasons ORDER BY reason ASC;");
+	if(getReasons.exec()){
+		while(getReasons.next()){
+			filterByReason->addItem(getReasons.value(1).toString(),getReasons.value(0).toInt());
+		}
+	}	
 	filterByTeam->addItem("");
 	QSqlQuery getTeams;
 	getTeams.prepare("SELECT id, team_name FROM teams ORDER BY team_name ASC;");
@@ -109,9 +105,12 @@ void DailyRevenueWindow::filterByAny(){
 
 	QString filterQuery = "SELECT daily_revenue.id, daily_revenue.date, daily_revenue.project_number, teams.team_name,"
 						 "printf('R$ %.2f', daily_revenue.total_daily_revenue/100.0),"
-						 "printf('R$ %.2f', daily_revenue.revenue_diff/100.0), goal_achieved, daily_revenue.responsible_sector, "
-						 "daily_revenue.goal_unachieved_why "
-						 "FROM daily_revenue LEFT JOIN teams ON daily_revenue.id_team = teams.id";
+						 "printf('R$ %.2f', daily_revenue.revenue_diff/100.0),"
+						 "daily_revenue.goal_achieved, responsible.responsible_name, "
+						 "reasons.reason FROM daily_revenue " 
+						 "LEFT JOIN responsible ON daily_revenue.id_sector = responsible.id "
+						 "LEFT JOIN reasons ON daily_revenue.id_reason = reasons.id "
+						 "LEFT JOIN teams ON daily_revenue.id_team = teams.id";
 
 	if(willFilterByDate->isChecked()){
 		filters << "daily_revenue.date = ?";
@@ -124,7 +123,7 @@ void DailyRevenueWindow::filterByAny(){
 	}
 
 	if(!filterByReason->currentData().isNull()){
-		filters << "daily_revenue.goal_unachieved_why = ?";
+		filters << "daily_revenue.id_reason = ?";
 		values << filterByReason->currentData();
 	}
 
@@ -183,9 +182,12 @@ void DailyRevenueWindow::updateDailyRevenueById(){
 void DailyRevenueWindow::showDailyRevenue(){
 	dailyModel->setQuery("SELECT daily_revenue.id, daily_revenue.date, daily_revenue.project_number, teams.team_name,"
 						 "printf('R$ %.2f', daily_revenue.total_daily_revenue/100.0),"
-						 "printf('R$ %.2f', daily_revenue.revenue_diff/100.0), goal_achieved, daily_revenue.responsible_sector, "
-						 "daily_revenue.goal_unachieved_why "
-						 "FROM daily_revenue LEFT JOIN teams ON daily_revenue.id_team = teams.id "
+						 "printf('R$ %.2f', daily_revenue.revenue_diff/100.0),"
+						 "daily_revenue.goal_achieved, responsible.responsible_name, "
+						 "reasons.reason FROM daily_revenue " 
+						 "LEFT JOIN responsible ON daily_revenue.id_sector = responsible.id "
+						 "LEFT JOIN reasons ON daily_revenue.id_reason = reasons.id "
+						 "LEFT JOIN teams ON daily_revenue.id_team = teams.id "
 						 "ORDER BY daily_revenue.date DESC;");
 	headerDefinition();
 }

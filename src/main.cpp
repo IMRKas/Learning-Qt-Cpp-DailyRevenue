@@ -9,6 +9,8 @@
 void createTableDailyRevenue();
 void createTableTeams();
 void createTableFleet();
+void createTableReasons();
+void createTableResponsible();
 
 int main(int argc, char *argv[]){
 	QApplication app(argc, argv);
@@ -24,8 +26,11 @@ int main(int argc, char *argv[]){
 	createTableDailyRevenue();
 	createTableTeams();
 	createTableFleet();
+	createTableReasons();
+	createTableResponsible();
 
 	WindowMain windowMain;
+	windowMain.resize(1500,768);
 	windowMain.show();
 	return app.exec();
 }
@@ -41,8 +46,10 @@ void createTableDailyRevenue(){
 										"total_daily_revenue INTEGER NOT NULL,"
 										"revenue_diff INTEGER,"
 										"goal_achieved TEXT NOT NULL,"
-										"responsible_sector TEXT,"
-										"goal_unachieved_why TEXT,"
+										"id_sector INTEGER,"
+										"id_reason INTEGER,"
+										"FOREIGN KEY (id_sector) REFERENCES sectors(id),"
+										"FOREIGN KEY (id_reason) REFERENCES reasons(id),"
 										"FOREIGN KEY (id_team) REFERENCES teams(id));");
 
 	if(!queryCreateTableDailyRevenue.exec()){
@@ -80,6 +87,28 @@ void createTableFleet(){
 	if(!queryCreateFleet.exec()){
 		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela 'fleet':\n" + queryCreateFleet.lastError().text());
 		return;
+	}
+}
+
+void createTableReasons(){
+	QSqlQuery queryCreateReasons;
+	queryCreateReasons.prepare("CREATE TABLE IF NOT EXISTS reasons("
+							   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+							   "reason TEXT NOT NULL UNIQUE,"
+							   "note TEXT);");
+	if(!queryCreateReasons.exec()){
+		QMessageBox::critical(nullptr, "ERRO", "Falha ao criar tabela de Motivos:\n" + queryCreateReasons.lastError().text());
+	}
+}
+
+void createTableResponsible(){
+	QSqlQuery queryCreateResponsible;
+	queryCreateResponsible.prepare("CREATE TABLE IF NOT EXISTS responsible("
+							   "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+							   "responsible_name TEXT NOT NULL UNIQUE,"
+							   "commissioner TEXT);");
+	if(!queryCreateResponsible.exec()){
+		QMessageBox::critical(nullptr,"ERRO","Falha ao criar tabela de setores:\n" + queryCreateResponsible.lastError().text());
 	}
 }
 
